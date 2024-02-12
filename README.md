@@ -39,10 +39,10 @@ For testing purposes, [Molecule](https://molecule.readthedocs.io/) with [Docker]
 Create or add to your roles dependency file (e.g requirements.yml):
 
 ```
-- src: git@bitbucket.org:idealista/aws_cloudmap_role.git
-  name: aws_cloudmap_role
-  version: 1.2.0
-  scm: git
+- src: idealista.aws_cloudmap_role
+  version: x.x.x
+  name: aws_cloudmap
+  scp: git
 ```
 
 Install the role with ansible-galaxy command:
