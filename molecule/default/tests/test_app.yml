@@ -1,0 +1,6 @@
+---
+
+file:
+  /usr/local/bin/aws:
+    exists: true
+    filetype: symlink

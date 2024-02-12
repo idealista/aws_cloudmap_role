@@ -1,0 +1,27 @@
+---
+
+- name: AWS_CLOUDMAP PREPARE | Prefix services and convert AWS_INSTANCE_PORT to string
+  set_fact:
+    aws_cloudmap_instances_updated: >-
+      {{
+        aws_cloudmap_instances_updated | default([]) +
+        [
+          instance | combine({
+            'service_name': aws_cloudmap_service_prefix | default('') + instance.service_name,
+            'attributes': instance.attributes | combine({
+              'AWS_INSTANCE_PORT': (
+                instance.attributes.AWS_INSTANCE_PORT | string ~ ''
+              )
+            })
+          })
+        ]
+      }}
+  loop: "{{ aws_cloudmap_instances }}"
+  loop_control:
+    loop_var: instance
+  no_log: "{{ aws_cloudmap_no_log | default(true) }}"
+
+- name: AWS_CLOUDMAP PREPARE | Update 'aws_cloudmap_instances' with prepared values
+  set_fact:
+    aws_cloudmap_instances: "{{ aws_cloudmap_instances_updated }}"
+    no_log: "{{ aws_cloudmap_no_log | default(true) }}"
