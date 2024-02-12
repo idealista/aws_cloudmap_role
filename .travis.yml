@@ -1,5 +1,5 @@
 ---
-dist: xenial
+dist: jammy
 language: python
 python: "3.9"
 os: linux
