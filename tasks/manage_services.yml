@@ -1,0 +1,26 @@
+---
+
+- name: AWS_CLOUDMAP | Create service '{{ item.service_name }}' if it does not exist
+  command: |
+    {{ aws_cloudmap_bin_path }}/{{ aws_cloudmap_exec_name }} servicediscovery create-service \
+      --name {{ item.service_name }} \
+      --namespace-id {{ aws_cloudmap_namespace_id }} \
+      --type HTTP \
+      {{ '--region ' + aws_cloudmap_region if aws_cloudmap_region is defined }} \
+      {{ '--profile ' + aws_cloudmap_profile if aws_cloudmap_profile is defined }}
+  register: aws_cloudmap_create_service
+  no_log: "{{ aws_cloudmap_no_log | default(true) }}"
+  changed_when: aws_cloudmap_create_service.rc == 0  # 0: service created successfully
+  check_mode: false
+  failed_when:
+    - aws_cloudmap_create_service.rc != 0    # service cannot be created
+    - aws_cloudmap_create_service.rc != 254  # 254: service already exists
+  when: item.action == 'register'
+
+- name: AWS_CLOUDMAP | Add newly created service '{{ item.service_name }}' to 'aws_cloudmap_services'
+  set_fact:
+    aws_cloudmap_services: "{{ aws_cloudmap_services | combine({item.service_name: (aws_cloudmap_create_service.stdout | from_json).Service }) }}"
+  when:
+    - aws_cloudmap_create_service is defined
+    - "'rc' in aws_cloudmap_create_service"
+    - aws_cloudmap_create_service.rc == 0

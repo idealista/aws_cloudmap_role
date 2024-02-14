@@ -1,0 +1,17 @@
+---
+
+## Variables for testing. Update them with the values/secrets for your AWS account to run custom tests.
+aws_cloudmap_region: "eu-west-1"
+aws_cloudmap_profile: "default"
+aws_cloudmap_access_key_id: "AWS_ACCESS_KEY_ID"  # You can move this to a vault file
+aws_cloudmap_secret_access_key: "AWS_SECRET_ACCESS_KEY"  # You can move this to a vault file
+
+# aws_cloudmap_instances:
+#   - instance_name: "my-instance-name"
+#     service_name: "my-service-name"
+#     action: "register"
+#     attributes:
+#       AWS_INSTANCE_IPV4: "127.0.0.1"
+#       AWS_INSTANCE_PORT: "9100"
+#       custom_attribute1: "custom-value1"
+#       custom_attribute2: "custom-value2"

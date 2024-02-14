@@ -1,0 +1,54 @@
+---
+
+# simple logic once here:
+#   - if 'aws_cloudmap_namespace_name' is defined, use it to get the namespace_id.
+#   - otherwise use the first namespace_id from the list of available namespaces.
+- name: AWS_CLOUDMAP | List namespaces
+  command: |
+    {{ aws_cloudmap_bin_path }}/{{ aws_cloudmap_exec_name }} servicediscovery list-namespaces \
+      {{ '--region ' + aws_cloudmap_region if aws_cloudmap_region is defined }} \
+      {{ '--profile ' + aws_cloudmap_profile if aws_cloudmap_profile is defined }}
+  register: aws_cloudmap_namespaces_raw
+  changed_when: false
+  check_mode: false
+  no_log: "{{ aws_cloudmap_no_log | default(true) }}"
+  tags:
+    - aws_cloudmap_get_namespace_id
+
+- name: AWS_CLOUDMAP | Convert namespaces list to JSON
+  set_fact:
+    aws_cloudmap_namespaces: "{{ aws_cloudmap_namespaces_raw.stdout | from_json }}"
+  when:
+    - not aws_cloudmap_namespaces_raw.failed
+    - aws_cloudmap_namespaces_raw.stdout | length > 0
+  tags:
+    - aws_cloudmap_get_namespace_id
+
+- name: AWS_CLOUDMAP | Check for namespaces
+  fail:
+    msg: "ERROR: No namespaces found. Please, create one before running this role."
+  when: aws_cloudmap_namespaces.Namespaces | length == 0
+  tags:
+    - aws_cloudmap_get_namespace_id
+
+- name: AWS_CLOUDMAP | Set 'namespace_id' from 'namespace_name' variable
+  set_fact:
+    namespace_id: "{{ aws_cloudmap_namespaces.Namespaces | selectattr('Name', 'equalto', aws_cloudmap_namespace_name) | map(attribute='Id') | first }}"
+  when:
+    - aws_cloudmap_namespace_name is defined
+  tags:
+    - aws_cloudmap_get_namespace_id
+
+- name: AWS_CLOUDMAP | Set namespace_id from first namespace
+  set_fact:
+    namespace_id: "{{ aws_cloudmap_namespaces.Namespaces | map(attribute='Id') | first }}"
+  when:
+    - aws_cloudmap_namespace_name is not defined
+  tags:
+    - aws_cloudmap_get_namespace_id
+
+- name: AWS_CLOUDMAP | Set 'aws_cloudmap_namespace_id' fact
+  set_fact:
+    aws_cloudmap_namespace_id: "{{ namespace_id }}"
+  tags:
+    - aws_cloudmap_get_namespace_id

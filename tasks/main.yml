@@ -1,0 +1,41 @@
+---
+
+- block:
+    - name: AWS_CLOUDMAP | System checks
+      include_tasks: system_checks.yml
+      tags:
+        - aws_cloudmap_check_cli
+
+    - name: AWS_CLOUDMAP | Configure credentials
+      include_tasks: configure_credentials.yml
+      tags:
+        - aws_cloudmap_configure_credentials
+
+    - name: AWS_CLOUDMAP | Get namespace_id
+      include_tasks: get_namespace_id.yml
+      when: aws_cloudmap_namespace_id is not defined
+      tags:
+        - aws_cloudmap_get_namespace_id
+
+    - name: AWS_CLOUDMAP | Prepare instances before processing them
+      include_tasks: prepare_instances.yml
+      tags:
+        - aws_cloudmap_prepare_instances
+
+    - name: AWS_CLOUDMAP | Get services
+      include_tasks: get_services.yml
+      when: aws_cloudmap_services is not defined
+      tags:
+        - aws_cloudmap_get_services
+
+    - name: AWS_CLOUDMAP | Manage instances
+      include_tasks: manage_instances.yml
+      loop: "{{ aws_cloudmap_instances }}"
+      no_log: "{{ aws_cloudmap_no_log | default(true) }}"
+      tags:
+        - aws_cloudmap_manage_instances
+        - aws_cloudmap_register_instances
+        - aws_cloudmap_deregister_instances
+  when:
+    - aws_cloudmap_instances is defined
+    - aws_cloudmap_instances | length > 0

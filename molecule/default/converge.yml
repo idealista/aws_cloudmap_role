@@ -1,0 +1,5 @@
+---
+- name: Converge
+  hosts: aws_cloudmap_group
+  roles:
+    - role: aws_cloudmap_role
