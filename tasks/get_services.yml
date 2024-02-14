@@ -1,0 +1,69 @@
+---
+
+- name: AWS_CLOUDMAP | Get all services in namespace '{{ aws_cloudmap_namespace_id }}'
+  command: |
+    {{ aws_cloudmap_bin_path }}/{{ aws_cloudmap_exec_name }} servicediscovery list-services \
+      --filters Name=NAMESPACE_ID,Values={{ aws_cloudmap_namespace_id }} \
+      {{ '--region ' + aws_cloudmap_region if aws_cloudmap_region is defined }} \
+      {{ '--profile ' + aws_cloudmap_profile if aws_cloudmap_profile is defined }}
+  register: all_cloudmap_services_raw
+  changed_when: false
+  check_mode: false
+  no_log: "{{ aws_cloudmap_no_log | default(true) }}"
+  tags:
+    - aws_cloudmap_get_services
+
+- name: AWS_CLOUDMAP | Convert service list to JSON
+  set_fact:
+    all_cloudmap_services: "{{ all_cloudmap_services_raw.stdout | from_json }}"
+  when:
+    - not all_cloudmap_services_raw.failed
+    - all_cloudmap_services_raw.stdout | length > 0
+  tags:
+    - aws_cloudmap_get_services
+
+- name: AWS_CLOUDMAP | Filter services based on 'service_name' from 'aws_cloudmap_instances' dicts
+  set_fact:
+    filtered_cloudmap_services: "{{ all_cloudmap_services.Services | selectattr('Name', 'in', (aws_cloudmap_instances | map(attribute='service_name') | list)) | list }}"
+  when:
+    - all_cloudmap_services is defined
+    - all_cloudmap_services.Services | length > 0
+  tags:
+    - aws_cloudmap_get_services
+
+- name: AWS_CLOUDMAP | Get full info for each service
+  command: |
+    {{ aws_cloudmap_bin_path }}/{{ aws_cloudmap_exec_name }} servicediscovery get-service \
+      --id {{ item.Id }} \
+      {{ '--region ' + aws_cloudmap_region if aws_cloudmap_region is defined }} \
+      {{ '--profile ' + aws_cloudmap_profile if aws_cloudmap_profile is defined }}
+  loop: "{{ filtered_cloudmap_services }}"
+  register: all_cloudmap_services_full_info_raw
+  changed_when: false
+  check_mode: false
+  no_log: "{{ aws_cloudmap_no_log | default(true) }}"
+  when:
+    - filtered_cloudmap_services is defined
+    - filtered_cloudmap_services | length > 0
+  tags:
+    - aws_cloudmap_get_services
+
+- name: AWS_CLOUDMAP | Select only the services belonging to the namespace '{{ aws_cloudmap_namespace_id }}'
+  set_fact:
+    all_cloudmap_services_full_info: "{{ all_cloudmap_services_full_info | default([]) + [item.stdout | from_json] }}"
+  loop: "{{ all_cloudmap_services_full_info_raw.results | default([]) }}"
+  no_log: "{{ aws_cloudmap_no_log | default(true) }}"
+  when: (item.stdout | from_json).Service.NamespaceId == aws_cloudmap_namespace_id
+
+- name: AWS_CLOUDMAP | Initialize 'aws_cloudmap_services'
+  set_fact:
+    aws_cloudmap_services: {}
+  when:
+    - aws_cloudmap_services is not defined
+
+- name: AWS_CLOUDMAP | Populate 'aws_cloudmap_services' with the full info of each selected service
+  set_fact:
+    aws_cloudmap_services: "{{ aws_cloudmap_services | default({}) | combine({item.Service.Name: item.Service}) }}"
+  loop: "{{ all_cloudmap_services_full_info }}"
+  no_log: "{{ aws_cloudmap_no_log | default(true) }}"
+  when: all_cloudmap_services_full_info is defined

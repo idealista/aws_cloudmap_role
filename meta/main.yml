@@ -1,0 +1,18 @@
+---
+
+galaxy_info:
+  author: idealista
+  company: Idealista S.A.U.
+  description: AWS Cloudmap Role
+  min_ansible_version: 2.9.27
+  license: Apache 2.0
+  galaxy_tags:
+    - aws
+    - awscli
+    - cloudmap
+    - install
+  platforms:
+    - name: Debian
+      versions:
+        - buster
+        - bullseye

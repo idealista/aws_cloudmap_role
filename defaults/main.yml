@@ -1,0 +1,28 @@
+---
+
+## General
+aws_cloudmap_region: "eu-south-2"
+aws_cloudmap_no_log: true  # Set to false to see the output of some sensitive tasks
+aws_cloudmap_service_prefix: "aws-"  # Will prepend this prefix to all services registered in AWS. Let it empty to disable prefixing.
+aws_cloudmap_set_credentials: true  # Set to false to skip setting credentials
+# aws_cloudmap_profile: "default"  # Uncomment to use a specific profile from your credentials file
+# aws_cloudmap_namespace_name: "your-namespace"  # This will be used if the namespace with that name exists and namespace_id is not defined
+# aws_cloudmap_namespace_id: "ns-xxxxxxxxxxxxxxxxx"  # This will take precedence over any other namespace
+
+## aws-cli
+aws_cloudmap_bin_path: "/usr/local/bin"
+aws_cloudmap_exec_name: "aws"
+
+## List of instances to register
+aws_cloudmap_instances: []
+#  example:
+#  aws_cloudmap_instances:
+#    - instance_name: "my-instance-name"
+#      service_name: "my-service-name"
+#      action: "register"  # or "deregister". Note it must be lowercase.
+#      attributes:
+#        AWS_INSTANCE_IPV4: "127.0.0.1"
+#        AWS_INSTANCE_PORT: "8080"
+#        custom_attribute: "custom_value"
+#        # Some attributes are mandatory, see the following link for details:
+#        # https://docs.aws.amazon.com/cloud-map/latest/api/API_RegisterInstance.html#cloudmap-RegisterInstance-request-Attributes

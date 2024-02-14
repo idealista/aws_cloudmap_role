@@ -1,0 +1,72 @@
+---
+# logic:
+#   1. Check if service does exist
+#   2. If service does not exist and action is "register", create it
+#   3. Add the service to 'aws_cloudmap_services'
+#   4. Register or deregister instances in the service
+- name: AWS_CLOUDMAP | Include tasks for managing services
+  include_tasks: manage_services.yml
+  when: item.service_name not in aws_cloudmap_services
+  tags:
+    - aws_cloudmap_manage_services
+    - aws_cloudmap_create_services
+
+- block:
+    - name: AWS_CLOUDMAP | Check if instance '{{ item.instance_name }}' does exist
+      command: |
+        {{ aws_cloudmap_bin_path }}/{{ aws_cloudmap_exec_name }} servicediscovery get-instance \
+          --instance-id {{ item.instance_name }} \
+          --service-id {{ aws_cloudmap_services[item.service_name].Id }} \
+          {{ '--region ' + aws_cloudmap_region if aws_cloudmap_region is defined }} \
+          {{ '--profile ' + aws_cloudmap_profile if aws_cloudmap_profile is defined }}
+      register: aws_cloudmap_instance_check
+      changed_when: false
+      check_mode: false
+      ignore_errors: true
+      no_log: "{{ aws_cloudmap_no_log | default(true) }}"
+      failed_when:
+        - aws_cloudmap_instance_check.rc != 0    # 0 is returned by aws-cli when instance does exist
+        - aws_cloudmap_instance_check.rc != 254  # 254 is returned by aws-cli when instance does not exist
+      when: item.service_name in aws_cloudmap_services
+      tags:
+        - aws_cloudmap_check_instances
+
+    - block:
+        - name: AWS_CLOUDMAP | Get JSON from stdout
+          set_fact:
+            aws_cloudmap_instance_check_json: "{{ aws_cloudmap_instance_check.stdout | from_json }}"
+          when:
+            - aws_cloudmap_instance_check.stdout | length > 0
+          tags:
+            - aws_cloudmap_check_instances
+
+        - name: AWS_CLOUDMAP | Register instance '{{ item.instance_name }}'
+          command: |
+            {{ aws_cloudmap_bin_path }}/{{ aws_cloudmap_exec_name }} servicediscovery register-instance \
+              --service-id {{ aws_cloudmap_services[item.service_name].Id }} \
+              --instance-id {{ item.instance_name }} \
+              {{ '--region ' + aws_cloudmap_region if aws_cloudmap_region is defined }} \
+              {{ '--profile ' + aws_cloudmap_profile if aws_cloudmap_profile is defined }} \
+              --attributes '{{ item.attributes | to_json }}'
+          when:
+            - item.action == "register"
+            - aws_cloudmap_instance_check_json is not defined or item.attributes != aws_cloudmap_instance_check_json.Instance.Attributes
+
+        - name: AWS_CLOUDMAP | Deregister instance '{{ item.instance_name }}'
+          command: |
+            {{ aws_cloudmap_bin_path }}/{{ aws_cloudmap_exec_name }} servicediscovery deregister-instance \
+              --service-id {{ aws_cloudmap_services[item.service_name].Id }} \
+              --instance-id {{ item.instance_name }} \
+              {{ '--region ' + aws_cloudmap_region if aws_cloudmap_region is defined }} \
+              {{ '--profile ' + aws_cloudmap_profile if aws_cloudmap_profile is defined }}
+          when:
+            - aws_cloudmap_instance_check.rc == 0
+            - item.action == "deregister"
+      when: >
+        ('skipped' in aws_cloudmap_instance_check and not aws_cloudmap_instance_check.skipped)
+        or
+        ('failed' in aws_cloudmap_instance_check and not aws_cloudmap_instance_check.failed)
+
+  when:
+    - aws_cloudmap_services is defined
+    - aws_cloudmap_services | length > 0
