@@ -10,8 +10,8 @@ install:
   - pipenv sync
 env:
   jobs:
+    - MOLECULE_DISTRO=debian:buster-slim
     - MOLECULE_DISTRO=debian:bullseye-slim
-    - MOLECULE_DISTRO=debian:bookworm-slim
 script:
   - pipenv run molecule test --all
 

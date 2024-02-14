@@ -9,9 +9,10 @@ galaxy_info:
   galaxy_tags:
     - aws
     - awscli
+    - cloudmap
     - install
   platforms:
     - name: Debian
       versions:
-        - bookworm
+        - buster
         - bullseye
