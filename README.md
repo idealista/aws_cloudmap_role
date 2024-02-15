@@ -5,8 +5,8 @@
 [![Ansible Galaxy](https://img.shields.io/badge/galaxy-idealista.aws_cloudmap_role-B62682.svg)](https://galaxy.ansible.com/idealista/aws_cloudmap_role)
 
 This ansible role uses `aws-cli` to manage instances in [Aws Cloudmap](https://aws.amazon.com/cloud-map/) services. It has been tested for the following Debian versions:
-- Bookworm
-- Bulleye
+- Buster
+- Bullseye
 
 This role has been generated using the [cookiecutter](https://github.com/cookiecutter/cookiecutter) tool, you can generate a similar role that fits your needs using the this [cookiecutter template](https://github.com/idealista/cookiecutter-ansible-role).
 
