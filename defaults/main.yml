@@ -10,7 +10,7 @@ aws_cloudmap_set_credentials: true  # Set to false to skip setting credentials
 # aws_cloudmap_namespace_id: "ns-xxxxxxxxxxxxxxxxx"  # This will take precedence over any other namespace
 
 ## aws-cli
-aws_cloudmap_bin_path: "{{ ansible_env.HOME }}/local/bin"
+aws_cloudmap_bin_path: "{{ ansible_env.HOME }}/.local/bin"
 aws_cloudmap_exec_name: "aws"
 
 ## List of instances to register
@@ -30,6 +30,6 @@ aws_cloudmap_instances: []
 awscli_url: "https://awscli.amazonaws.com/awscli-exe-linux-{{ aws_cli_arch }}.zip"
 aws_cli_arch: "{{ 'aarch64' if ansible_facts.architecture == 'aarch64' else 'x86_64' }}"
 aws_cli_dir_extract: "{{ ansible_env.HOME }}"
-aws_cli_path: "{{ ansible_env.HOME }}/local/bin/aws"
+aws_cli_path: "{{ ansible_env.HOME }}/.local/bin/aws"
 
 aws_cli_install: true
