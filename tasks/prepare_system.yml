@@ -1,0 +1,58 @@
+---
+
+- name: AWS_CLOUDMAP | Check if AWS CLI is installed in a specific directory
+  stat:
+    path: "{{ aws_cloudmap_bin_path }}/aws"
+  register: aws_cli_check
+  ignore_errors: yes
+
+- block:
+
+    - name: AWS_CLOUDMAP | Download aws-cli
+      get_url:
+        url: "{{ awscli_url }}"
+        dest: "{{ aws_cli_dir_extract }}/awscliv2.zip"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+        mode: 0640
+
+    - name: AWS_CLOUDMAP | Unzip aws-cli
+      unarchive:
+        src: "{{ aws_cli_dir_extract }}/awscliv2.zip"
+        remote_src: yes
+        dest: "{{ aws_cli_dir_extract }}"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+
+    - name: AWS_CLOUDMAP | Install aws-cli
+      command: "{{ aws_cli_dir_extract }}/aws/install --bin-dir {{ aws_cloudmap_bin_path }} --update"
+      args:
+        creates: "{{ aws_cloudmap_bin_path }}/{{ aws_cloudmap_exec_name }}"
+
+    - name: AWS_CLOUDMAP | AWS CLI Installation verify
+      command: "{{ aws_cloudmap_bin_path }}/aws --version"
+      register: result
+
+    - name: AWS_CLOUDMAP | AWS CLI Output version
+      debug:
+        msg:
+          - "Version: {{ result.stdout }}"
+
+    - name: AWS_CLOUDMAP | AWS CLI Cleanup installation files
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ aws_cli_dir_extract }}/awscliv2.zip"
+        - "{{ aws_cli_dir_extract }}/aws"
+  when:
+    - aws_cli_check.stat.exists is not defined or not aws_cli_check.stat.exists
+    - aws_cli_install
+
+- name: AWS_CLOUDMAP | AWS region to be used
+  debug:
+    msg: "AWS region '{{ aws_cloudmap_region }}' will be used"
+  when: aws_cloudmap_region is defined
+  tags:
+    - aws_cloudmap_check_cli
+    - aws_cloudmap_show_region

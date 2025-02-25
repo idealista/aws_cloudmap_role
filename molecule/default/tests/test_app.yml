@@ -1,6 +1,6 @@
 ---
 
 file:
-  /usr/local/bin/aws:
+  "{{ aws_cloudmap_bin_path }}/aws":
     exists: true
     filetype: symlink
