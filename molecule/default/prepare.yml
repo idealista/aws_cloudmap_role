@@ -1,7 +1,0 @@
----
-
-- name: Prepare
-  hosts: aws_cloudmap_group
-  gather_facts: true
-  vars_files:
-    - ../../defaults/main.yml
