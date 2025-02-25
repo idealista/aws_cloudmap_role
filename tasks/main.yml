@@ -1,11 +1,11 @@
 ---
 
-- block:
-    - name: AWS_CLOUDMAP | System checks
-      include_tasks: system_checks.yml
-      tags:
-        - aws_cloudmap_check_cli
+- name: AWS_CLOUDMAP | Prepare System
+  include_tasks: prepare_system.yml
+  tags:
+    - aws_cloudmap_check_cli
 
+- block:
     - name: AWS_CLOUDMAP | Configure credentials
       include_tasks: configure_credentials.yml
       tags:

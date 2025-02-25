@@ -10,6 +10,7 @@ platforms:
   - name: aws-cloudmap-test
     groups:
       - aws_cloudmap_group
+    platform: amd64
     image: ${MOLECULE_DISTRO:-debian:bullseye-slim}
     privileged: false
     capabilities:
