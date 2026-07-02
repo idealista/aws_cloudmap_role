@@ -20,7 +20,7 @@
         state: present
       when: unzip_check.rc != 0
       become: true
-      
+
     - name: AWS_CLOUDMAP | Download aws-cli
       get_url:
         url: "{{ awscli_url }}"
