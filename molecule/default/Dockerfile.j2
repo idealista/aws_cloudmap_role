@@ -21,11 +21,20 @@ FROM --platform={{ item.platform | default('amd64') }} {{ item.image }}
     {% endif %}
 {% endif %}
 
-{% if distro == "stretch" or distro == "jessie" %}
+{% if distro == "stretch" or distro == "jessie" or distro == "bullseye" %}
+RUN echo 'APT::Get::AllowUnauthenticated "true";' > /etc/apt/apt.conf.d/99allow-unauthenticated
+{% endif %}
+
+{% if distro == "stretch" or distro == "jessie" or distro == "buster" or distro == "bullseye" %}
 RUN echo "deb http://archive.debian.org/debian/ {{ distro }} main contrib non-free" > /etc/apt/sources.list && \
     echo "deb-src http://archive.debian.org/debian/ {{ distro }} main contrib non-free" >> /etc/apt/sources.list && \
+    {% if distro == "bullseye" %}
+    echo "deb http://security.debian.org/debian-security {{ distro }}-security main contrib non-free" >> /etc/apt/sources.list && \
+    echo "deb-src http://security.debian.org/debian-security {{ distro }}-security main contrib non-free" >> /etc/apt/sources.list && \
+    {% else %}
     echo "deb http://archive.debian.org/debian-security {{ distro }}/updates main contrib non-free" >> /etc/apt/sources.list && \
     echo "deb-src http://archive.debian.org/debian-security {{ distro }}/updates main contrib non-free" >> /etc/apt/sources.list && \
+    {% endif %}
     {% if distro == "stretch" %}
     echo "deb http://archive.debian.org/debian/ {{ distro }}-proposed-updates main contrib non-free" >> /etc/apt/sources.list && \
     echo "deb-src http://archive.debian.org/debian/ {{ distro }}-proposed-updates main contrib non-free" >> /etc/apt/sources.list && \
@@ -37,11 +46,16 @@ RUN echo "deb http://archive.debian.org/debian/ {{ distro }} main contrib non-fr
 RUN apt-get update
 {% endif %}
 {% if distro == "stretch" or distro == "jessie" or distro == "buster" %}
-RUN apt-get install -y python sudo bash ca-certificates iproute2 systemd systemd-sysv python-pip procps curl less jq groff inetutils-ping --force-yes && \
+RUN apt-get install -y python python-apt sudo bash ca-certificates iproute2 systemd systemd-sysv python-pip procps curl less jq groff inetutils-ping --force-yes && \
     apt-get clean
 {% endif %}
 
-{% if distro == "bullseye" or distro == "bookworm" %}
+{% if distro == "bullseye" %}
+RUN apt-get install -y --allow-unauthenticated python3 sudo bash ca-certificates iproute2 systemd systemd-sysv python3-pip procps iputils-ping curl less jq groff && \
+    apt-get clean
+{% endif %}
+
+{% if distro == "bookworm" %}
 RUN apt-get install -y python3 sudo bash ca-certificates iproute2 systemd systemd-sysv python3-pip procps iputils-ping curl less jq groff && \
     apt-get clean
 {% endif %}
