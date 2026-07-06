@@ -8,6 +8,19 @@
 
 - block:
 
+    - name: AWS_CLOUDMAP | Check if unzip is installed
+      command: which unzip
+      register: unzip_check
+      changed_when: false
+      failed_when: false
+
+    - name: AWS_CLOUDMAP | Install unzip
+      package:
+        name: unzip
+        state: present
+      when: unzip_check.rc != 0
+      become: true
+
     - name: AWS_CLOUDMAP | Download aws-cli
       get_url:
         url: "{{ awscli_url }}"
